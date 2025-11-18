@@ -12,10 +12,7 @@ import java.util.Map;
 public class DroneCommandService {
 
     @Autowired
-    private RabbitTemplate rabbitTemplate; // Para enviar comandos EXTERNOS (para o drone)
-
-    @Autowired
-    private SimulationService simulationService; // Para comandos INTERNOS (para o simulador)
+    private RabbitTemplate rabbitTemplate; 
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -28,44 +25,38 @@ public class DroneCommandService {
         String command = (String) payload.get("command");
         if (command == null) return;
 
-        // ---------------------------------------------------------------------
-        // 1. COMANDOS INTERNOS (Que controlam o SIMULADOR)
-        // ---------------------------------------------------------------------
-        if (command.equals("CONTINUE")) {
-            // Este comando é para o SIMULADOR, então chamamos o serviço diretamente.
-            simulationService.resumeSimulation(droneId); //
-        
-        } 
         
         // ---------------------------------------------------------------------
-        // 2. COMANDOS EXTERNOS (Que controlam o DRONE)
+        // 2. COMANDOS EXTERNOS (AGORA INCLUI O CONTINUE)
         // ---------------------------------------------------------------------
-        else if (command.equals("GO_TO_POSITION") || command.equals("SET_FORMATION")) {
-            // Estes comandos são para o DRONE, então publicamos no RabbitMQ.
+        // Todos os comandos operacionais são enviados para o Microsserviço Simulador.
+        if (command.equals("GO_TO_POSITION") || 
+            command.equals("SET_FORMATION") || 
+            command.equals("CONTINUE")) { 
+
             publishCommandToRabbitMQ(droneId, payload);
         
         } 
         
         else {
-            System.err.println("[DroneCommandService] Comando desconhecido: " + command);
+            System.err.println("[DroneCommandService] Comando desconhecido ou não roteado: " + command);
         }
     }
 
     /**
      * Publica um payload de comando no exchange de comandos do RabbitMQ.
+     * Esta lógica permanece inalterada.
      */
     private void publishCommandToRabbitMQ(Long droneId, Map<String, Object> payload) {
         try {
-            String routingKey = "drone." + droneId + ".command"; //
+            String routingKey = "drone." + droneId + ".command";
             
-            // --- IMPORTANTE ---
             // Adiciona o droneId ao payload antes de enviar
             payload.put("droneId", droneId);
-            // --- FIM DA ADIÇÃO ---
             
             String jsonPayload = objectMapper.writeValueAsString(payload);
             
-            rabbitTemplate.convertAndSend(RabbitMQConfig.COMMAND_EXCHANGE, routingKey, jsonPayload); //
+            rabbitTemplate.convertAndSend(RabbitMQConfig.COMMAND_EXCHANGE, routingKey, jsonPayload);
 
             System.out.println("[DroneCommandService] Comando EXTERNO publicado para RabbitMQ: " + jsonPayload);
 

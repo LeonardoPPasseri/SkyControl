@@ -109,4 +109,29 @@ public class RabbitMQConfig {
                 .to(eventExchange())
                 .with(EVENT_ROUTING_KEY);
     }
+
+    //-----------------------
+    // 5) INICIALIZAÇÃO DO SIMULADOR (Backend -> Simulador)
+    //-----------------------
+    public static final String INIT_EXCHANGE = "simulator.init.exchange";
+    public static final String INIT_QUEUE = "simulator.init.queue";
+    public static final String INIT_ROUTING_KEY = "drone.init";
+
+    @Bean
+    public TopicExchange initExchange() {
+        return new TopicExchange(INIT_EXCHANGE);
+    }
+
+    @Bean
+    public Queue initQueue() {
+        return new Queue(INIT_QUEUE, true);
+    }
+
+    @Bean
+    public Binding initBinding() {
+        return BindingBuilder
+                .bind(initQueue())
+                .to(initExchange())
+                .with(INIT_ROUTING_KEY);
+    }
 }

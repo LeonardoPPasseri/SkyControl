@@ -4,15 +4,21 @@ import com.skycontrol.dronebackend.model.Drone;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import java.util.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.skycontrol.dronebackend.config.RabbitMQConfig;
 import com.skycontrol.dronebackend.database.JsonDatabaseService;
-import com.skycontrol.dronebackend.events.EventPublisher;
+
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class DroneService {
 
+    @Autowired 
+    private RabbitTemplate rabbitTemplate;
     @Autowired
-    private EventPublisher eventPublisher;
+    private ObjectMapper objectMapper;
 
     @Autowired
     private JsonDatabaseService db; //
@@ -23,8 +29,38 @@ public class DroneService {
     public void init() {
         drones = db.load();
         if (drones == null) drones = new ArrayList<>();
+        
+        // NOVO: Envia todos os drones existentes para o simulador iniciar
+        initializeSimulator(); 
     }
 
+    private void initializeSimulator() {
+        System.out.println("[DroneService] Publicando drones existentes para inicialização do Simulador...");
+        for (Drone drone : drones) {
+            publishDroneEvent("DRONE_CREATED", drone);
+        }
+        System.out.println("[DroneService] Inicialização concluída.");
+    }
+    private void publishDroneEvent(String eventType, Drone drone) {
+        try {
+            // O payload deve incluir o tipo de evento para o Simulador
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("eventType", eventType);
+            payload.put("data", drone);
+            
+            String json = objectMapper.writeValueAsString(payload);
+            
+            // Usando o novo canal de inicialização
+            rabbitTemplate.convertAndSend(
+                RabbitMQConfig.INIT_EXCHANGE, 
+                RabbitMQConfig.INIT_ROUTING_KEY, 
+                json
+            );
+        } catch (Exception e) {
+            System.err.println("Erro ao publicar evento de drone: " + e.getMessage());
+            
+        }
+    }
     public List<Drone> getAll() {
         return new ArrayList<>(drones);
     }
@@ -34,7 +70,7 @@ public class DroneService {
         drones.add(drone);
         
         db.save(drones);
-        eventPublisher.publish("DRONE_CREATED", drone);
+        publishDroneEvent("DRONE_CREATED", drone); // Comunica ao simulador externo
 
         return drone;
     }
@@ -44,21 +80,6 @@ public class DroneService {
                 .filter(d -> d.getId().equals(id))
                 .findFirst()
                 .orElse(null);
-    }
-
-    public Drone update(Long id, Drone newDrone) {
-        Drone drone = getById(id);
-        if (drone == null) return null;
-        if (newDrone == null) return drone;
-
-        if (newDrone.getName() != null) drone.setName(newDrone.getName());
-        if (newDrone.getModel() != null) drone.setModel(newDrone.getModel());
-        if (newDrone.getActive() != null) drone.setActive(newDrone.getActive());
-
-        db.save(drones);
-        eventPublisher.publish("DRONE_UPDATED", drone);
-
-        return drone;
     }
 
     public boolean delete(Long id) {
@@ -75,7 +96,7 @@ public class DroneService {
         db.archiveTelemetry(id); //
 
         // 4. Notifica o sistema
-        eventPublisher.publish("DRONE_DELETED", drone);
+        publishDroneEvent("DRONE_DELETED", drone);
 
         return true;
     }

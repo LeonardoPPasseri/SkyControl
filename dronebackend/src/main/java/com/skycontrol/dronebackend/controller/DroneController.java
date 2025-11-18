@@ -35,11 +35,6 @@ public class DroneController {
         return droneService.getById(id);
     }
 
-    @PutMapping("/{id}")
-    public Drone update(@PathVariable Long id, @RequestBody Drone drone) {
-        return droneService.update(id, drone);
-    }
-
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         droneService.delete(id);

@@ -3,6 +3,7 @@ package com.skycontrol.dronebackend.service;
 import com.skycontrol.dronebackend.database.JsonDatabaseService;
 import com.skycontrol.dronebackend.model.Drone;
 import com.skycontrol.dronebackend.model.DroneTelemetry;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

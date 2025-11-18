@@ -48,9 +48,4 @@
   "name" : "BladeRunner",
   "model" : "BRX",
   "active" : true
-}, {
-  "id" : 11,
-  "name" : "teste ",
-  "model" : "teste",
-  "active" : true
 } ]
