@@ -15,11 +15,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/drones")
-@CrossOrigin(origins = "*") //
+@CrossOrigin(origins = "*")
 public class DroneCommandController {
 
     @Autowired
-    private DroneCommandService commandService; // <-- 2. INJETAR O NOVO SERVIÇO
+    private DroneCommandService commandService;
 
     /**
      * Endpoint para enviar comandos para um drone específico.
@@ -28,19 +28,17 @@ public class DroneCommandController {
     @PostMapping("/{id}/command")
     public ResponseEntity<Void> receiveCommand(
             @PathVariable Long id, 
-            @RequestBody Map<String, Object> payload) { // Mudei para Object para aceitar lat/lng
+            @RequestBody Map<String, Object> payload) {
         
         String command = (String) payload.get("command");
         if (command == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        // --- 3. DELEGAR PARA O SERVIÇO ---
-        // O Controller não sabe o que o comando faz,
-        // ele apenas o repassa para o CommandService.
-        commandService.processCommand(id, payload); //
+        // DELEGAR PARA O SERVIÇO 
+        commandService.processCommand(id, payload);
         
         System.out.println("[CommandController] Comando recebido para Drone ID: " + id + " | Payload: " + payload);
-        return ResponseEntity.ok().build(); // Sucesso
+        return ResponseEntity.ok().build();
     }
 }

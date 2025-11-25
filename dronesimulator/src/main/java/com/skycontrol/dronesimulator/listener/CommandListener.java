@@ -19,20 +19,16 @@ public class CommandListener {
     @Autowired
     private SimulationService simulationService; //
 
-    /**
-     * Ouve a fila de Comandos (definida em RabbitMQConfig).
-     *
-     */
+
+     // Ouve a fila de Comandos (definida em RabbitMQConfig).
     @RabbitListener(queues = RabbitMQConfig.COMMAND_QUEUE)
     public void handleCommandMessage(String commandJson) {
         try {
-            // 1. Desserializa o JSON
             Map<String, Object> commandPayload = objectMapper.readValue(commandJson, 
                 new TypeReference<Map<String, Object>>() {});
 
             String command = (String) commandPayload.get("command");
             
-            // Pega o ID (que o DroneCommandService adicionou)
             Long droneId = ((Number) commandPayload.get("droneId")).longValue();
 
             if (command == null || droneId == null) {
@@ -40,15 +36,12 @@ public class CommandListener {
                 return;
             }
             
-
-            // 2. Encaminha o comando para o SimulationService
             if (command.equals("GO_TO_POSITION")) {
                 
                 Double lat = ((Number) commandPayload.get("lat")).doubleValue();
                 Double lng = ((Number) commandPayload.get("lng")).doubleValue();
                 
                 if (lat != null && lng != null) {
-                    // Chama o método no SimulationService (que vamos criar)
                     simulationService.setDroneTarget(droneId, lat, lng);
                 }
             }

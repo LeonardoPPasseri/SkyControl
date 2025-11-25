@@ -22,15 +22,13 @@ public class FormationController {
     @PostMapping
     public ResponseEntity<Void> setFormation(@RequestBody Map<String, Object> payload) {
         String type = (String) payload.get("type");
-        
-        // Tenta pegar o ID do líder (pode ser nulo)
         Long leaderId = null;
+        
         if (payload.containsKey("leaderId") && payload.get("leaderId") != null) {
             leaderId = ((Number) payload.get("leaderId")).longValue();
         }
         
         if (type != null) {
-            // Chama o serviço passando o tipo e o líder
             formationService.applyFormation(type, leaderId);
             return ResponseEntity.ok().build();
         }

@@ -11,24 +11,23 @@ import java.util.Random;
 
 public class SimulatedDrone implements Runnable {
 
-    // --- Constantes ---
     private static final String TELEMETRY_EXCHANGE = "telemetry.exchange";
     private static final String ALERT_EXCHANGE = RabbitMQConfig.ALERT_EXCHANGE; //
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final Random rand = new Random();
     private static final double METROS_POR_CICLO = 3500; // Aproximadamente 3,5 km a cada ciclo (3s)
 
-    // --- Estados do Drone ---
+    // Estados do Drone
     private enum State { IDLE, MOVING, PAUSED }
     private volatile State currentState = State.IDLE; // Drone começa parado
 
-    // --- Controle de Thread ---
+    // Controle de Thread
     private final Object pauseLock = new Object();
     private volatile boolean active = true;
 
-    // --- CORREÇÃO AQUI: Estado de Posição e Bateria ---
+    // Estado de Posição e Bateria 
     private Drone drone;
-    private double lat, lng, altitude; // Altitude agora é um estado
+    private double lat, lng, altitude;
     private double targetLat, targetLng;
     private int battery;
     private RabbitTemplate rabbitTemplate;
@@ -40,10 +39,9 @@ public class SimulatedDrone implements Runnable {
         // Posição inicial
         this.lat = -22.9000 + (rand.nextDouble() - 0.5) * 0.1;
         this.lng = -43.2000 + (rand.nextDouble() - 0.5) * 0.1;
-        this.altitude = 100.0 + (rand.nextDouble() * 20.0); // Define altitude inicial
+        this.altitude = 100.0 + (rand.nextDouble() * 20.0); 
         this.battery = 100;
         
-        // Alvo inicial é a própria posição
         this.targetLat = this.lat;
         this.targetLng = this.lng;
 
@@ -54,7 +52,6 @@ public class SimulatedDrone implements Runnable {
     public void run() {
         while (active) {
             try {
-                // 1. Lógica de Pausa (PAUSED)
                 synchronized (pauseLock) {
                     while (currentState == State.PAUSED) {
                         System.out.println("[SimulatedDrone " + drone.getId() + "] PAUSADO (Emergência). Aguardando comando...");
@@ -62,21 +59,20 @@ public class SimulatedDrone implements Runnable {
                     }
                 }
 
-                // 2. Lógica de Estado (MOVING)
                 if (currentState == State.MOVING) {
-                    updateMovementToTarget(); // Mover em direção ao alvo
+                    updateMovementToTarget();
                 }
                 
-                // 3. Lógica de Bateria (Sempre gasta)
+                // Bateria
                 updateBatteryDrain();
 
-                // 4. Lógica de Telemetria (Sempre envia)
-                sendTelemetry(); // Método corrigido
+                // Telemetria
+                sendTelemetry();
 
-                // 5. Lógica de Emergência (Sempre verifica)
+                // Emergência
                 checkEmergencyAlert();
 
-                // 6. Dorme por 3 segundos
+                // Dorme por 3 segundos
                 Thread.sleep(3000);
 
             } catch (InterruptedException e) {
@@ -86,11 +82,9 @@ public class SimulatedDrone implements Runnable {
                 if (active) e.printStackTrace();
             }
         }
-        System.out.println("[SimulatedDrone] Thread FINALIZADA para Drone ID: " + drone.getId());
     }
 
-    // --- MÉTODOS DE LÓGICA INTERNA ---
-
+    // MÉTODOS DE LÓGICA INTERNA 
     private void updateMovementToTarget() {
         double distLat = targetLat - lat;
         double distLng = targetLng - lng;
@@ -100,16 +94,14 @@ public class SimulatedDrone implements Runnable {
         if (distance < step) {
             this.lat = targetLat;
             this.lng = targetLng;
-            this.currentState = State.IDLE; // Chegou ao destino
+            this.currentState = State.IDLE;
             System.out.println("[SimulatedDrone " + drone.getId() + "] CHEGOU AO ALVO. Voltando para IDLE.");
         } else {
-            // Move lat/lng
             this.lat += (distLat / distance) * step;
             this.lng += (distLng / distance) * step;
             
-            // --- CORREÇÃO AQUI ---
             // Simula uma pequena variação de altitude APENAS durante o movimento
-            this.altitude += (rand.nextDouble() - 0.5) * 0.5; // Varia 0.5m
+            this.altitude += (rand.nextDouble() - 0.5) * 0.5;
         }
     }
 
@@ -126,8 +118,8 @@ public class SimulatedDrone implements Runnable {
                 drone.getId().intValue(), 
                 this.lat, 
                 this.lng,
-                this.altitude, // <-- CORRIGIDO: Usa o estado 'this.altitude'
-                (currentState == State.MOVING) ? 20 + rand.nextDouble() * 10 : 0, // Velocidade
+                this.altitude,
+                (currentState == State.MOVING) ? 20 + rand.nextDouble() * 10 : 0,
                 this.battery
         );
         String json = mapper.writeValueAsString(telemetry);
@@ -136,7 +128,7 @@ public class SimulatedDrone implements Runnable {
     }
 
     private void checkEmergencyAlert() throws Exception {
-        // Chance de 1 em 500 (0,2%)
+        // Chance de 1 em 500 (0,2%) a cada ciclo
         if (rand.nextInt(500) == 1) {
             System.out.println("!!! [SimulatedDrone " + drone.getId() + "] ALERTA DE EMERGÊNCIA DETECTADO !!!");
             
@@ -150,32 +142,28 @@ public class SimulatedDrone implements Runnable {
             String routingKey = "drone." + alert.getDroneId() + ".alert";
             rabbitTemplate.convertAndSend(ALERT_EXCHANGE, routingKey, alertJson); //
 
-            // PAUSA a si mesmo (muda o estado)
             this.currentState = State.PAUSED;
         }
     }
 
-    // --- MÉTODOS DE CONTROLE EXTERNO (Chamados pelo SimulationService) ---
+    // MÉTODOS DE CONTROLE EXTERNO
 
     public void stop() {
         this.active = false;
-        resume(); // Acorda se estiver pausado, para poder parar
+        resume();
     }
 
     public void resume() {
         synchronized (pauseLock) {
-            this.currentState = State.IDLE; // Ao continuar, volta para IDLE
-            pauseLock.notify(); // Acorda a thread
+            this.currentState = State.IDLE; 
+            pauseLock.notify();
         }
     }
-    
-    /**
-     * Define um novo alvo e muda o estado para MOVING.
-     */
+
     public void setTargetPosition(double lat, double lng) {
         this.targetLat = lat;
         this.targetLng = lng;
-        this.currentState = State.MOVING; // Inicia o movimento
+        this.currentState = State.MOVING;
         System.out.println("[SimulatedDrone " + drone.getId() + "] Comando 'GO_TO_POSITION' recebido. Movendo para: " + lat + "," + lng);
     }
     

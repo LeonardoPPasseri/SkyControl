@@ -14,8 +14,7 @@ public class Drone {
         this.model = model;
         this.active = active;
     }
-
-    // getters e setters
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -23,7 +22,7 @@ public class Drone {
     public String getModel() { return model; }
     public void setModel(String model) { this.model = model; }
     public boolean isActive() { return active; }
-    public Boolean getActive() { return active; } // Getter para Boolean
+    public Boolean getActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
 }
 

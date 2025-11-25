@@ -16,65 +16,56 @@ import jakarta.annotation.PostConstruct;
 public class AlertService {
 
     @Autowired
-    private JsonDatabaseService dbService; //
+    private JsonDatabaseService dbService;
     @Autowired
-    private InternalEventBus eventBus; //
+    private InternalEventBus eventBus; 
     @Autowired
     private RabbitTemplate rabbitTemplate;
     @Autowired
     private ObjectMapper objectMapper;
 
-    /**
-     * Executado AUTOMATICAMENTE quando o Spring inicia este serviço.
-     * Limpa os alertas antigos do JSON.
-     */
+
+    // Executado AUTOMATICAMENTE quando o Spring inicia este serviço. Limpa os alertas antigos do JSON.
+
     @PostConstruct
     public void init() {
         dbService.clearAlerts(); //
     }
 
-    /**
-     * Alertas EXTERNOS (do RabbitMQ via AlertListener)
-     * APENAS salva e notifica o frontend.
-     *
-     */
+ 
+    // Alertas EXTERNOS (do RabbitMQ via AlertListener)
+    // APENAS salva e notifica o frontend.
     public void processExternalAlert(Alert alert) {
         
-        // 1. Salva no JSON
-        dbService.saveAlert(alert); //
+        dbService.saveAlert(alert); 
 
-        // 2. Publica no INTERNO (para o frontend)
-        var event = new InternalEventPublisher.Event("ALERT_CREATED", alert); //
-        eventBus.publish(event); //
+        var event = new InternalEventPublisher.Event("ALERT_CREATED", alert); 
+        eventBus.publish(event); 
 
         System.out.println("!!! ALERTA EXTERNO PROCESSADO !!! Drone ID: " + alert.getDroneId() + " | Tipo: " + alert.getType());
     }
 
-    /**
-     * Alertas INTERNOS (Bateria Baixa via TelemetryListener)
-     * Salva, notifica o frontend E publica no EXTERNO (RabbitMQ).
-     *
-     */
+
+     // Alertas INTERNOS (Bateria Baixa via TelemetryListener)
+     // Salva, notifica o frontend E publica no EXTERNO (RabbitMQ).
+
     public void createInternalAlert(Long droneId, String type, String message) {
         long timestamp = System.currentTimeMillis();
-        Alert alert = new Alert(droneId, type, message, timestamp); //
+        Alert alert = new Alert(droneId, type, message, timestamp); 
         
-        // 1. Salva no JSON
-        dbService.saveAlert(alert); //
 
-        // 2. Publica no INTERNO (para o frontend)
-        var event = new InternalEventPublisher.Event("ALERT_CREATED", alert); //
-        eventBus.publish(event); //
+        dbService.saveAlert(alert); 
 
-        // 3. Publica no EXTERNO (para outros sistemas)
+        var event = new InternalEventPublisher.Event("ALERT_CREATED", alert); 
+        eventBus.publish(event); 
+
         publishAlertToRabbitMQ(alert);
 
         System.out.println("!!! ALERTA INTERNO GERADO !!! Drone ID: " + alert.getDroneId() + " | Tipo: " + alert.getType());
     }
 
-    /**
-     * Helper para enviar alertas para o RabbitMQ
-     */
+
+    // Helper para enviar alertas para o RabbitMQ
     private void publishAlertToRabbitMQ(Alert alert) {
         try {
             String routingKey = "drone." + alert.getDroneId() + ".alert"; //
@@ -84,8 +75,6 @@ public class AlertService {
         } catch (Exception e) {
             System.err.println("[AlertService] Falha ao publicar alerta no RabbitMQ: " + e.getMessage());
         }
-    }
-
-    
+    } 
 
 }

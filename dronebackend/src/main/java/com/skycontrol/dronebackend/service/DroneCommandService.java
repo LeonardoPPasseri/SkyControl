@@ -17,25 +17,20 @@ public class DroneCommandService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    /**
-     * Recebe um comando genérico (do DroneCommandController) e decide para onde enviá-lo.
-     */
+
+    // Recebe um comando genérico (do DroneCommandController) e decide para onde enviá-lo.
     public void processCommand(Long droneId, Map<String, Object> payload) {
         
         String command = (String) payload.get("command");
         if (command == null) return;
 
-        
-        // ---------------------------------------------------------------------
-        // 2. COMANDOS EXTERNOS (AGORA INCLUI O CONTINUE)
-        // ---------------------------------------------------------------------
+        // COMANDOS EXTERNOS
         // Todos os comandos operacionais são enviados para o Microsserviço Simulador.
         if (command.equals("GO_TO_POSITION") || 
             command.equals("SET_FORMATION") || 
             command.equals("CONTINUE")) { 
 
             publishCommandToRabbitMQ(droneId, payload);
-        
         } 
         
         else {
@@ -43,15 +38,12 @@ public class DroneCommandService {
         }
     }
 
-    /**
-     * Publica um payload de comando no exchange de comandos do RabbitMQ.
-     * Esta lógica permanece inalterada.
-     */
+
+    // Publica um payload de comando no exchange de comandos do RabbitMQ.
     private void publishCommandToRabbitMQ(Long droneId, Map<String, Object> payload) {
         try {
             String routingKey = "drone." + droneId + ".command";
             
-            // Adiciona o droneId ao payload antes de enviar
             payload.put("droneId", droneId);
             
             String jsonPayload = objectMapper.writeValueAsString(payload);

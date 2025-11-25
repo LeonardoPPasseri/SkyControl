@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/telemetry")
-@CrossOrigin(origins = "*") // Essencial para o frontend acessar
+@CrossOrigin(origins = "*")
 public class TelemetryController {
 
     private final JsonDatabaseService dbService;
@@ -21,10 +21,7 @@ public class TelemetryController {
         this.dbService = dbService;
     }
 
-    /**
-     * Endpoint para buscar o último estado de telemetria salvo
-     * de TODOS os drones.
-     */
+    //Endpoint para buscar o último estado de telemetria salvo de TODOS os drones.
     @GetMapping("/latest")
     public List<DroneTelemetry> getLatestTelemetry() {
         // Usa o método que ativamos no JsonDatabaseService

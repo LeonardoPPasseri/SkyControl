@@ -34,7 +34,7 @@ public class DroneService {
         drones = db.load();
         if (drones == null) drones = new ArrayList<>();
         
-        // NOVO: Envia todos os drones existentes para o simulador iniciar
+        // Inicializa o Simulador com os drones existentes
         initializeSimulator(); 
     }
 
@@ -47,14 +47,12 @@ public class DroneService {
     }
     private void publishDroneEvent(String eventType, Drone drone) {
         try {
-            // O payload deve incluir o tipo de evento para o Simulador
             Map<String, Object> payload = new HashMap<>();
             payload.put("eventType", eventType);
             payload.put("data", drone);
             
             String json = objectMapper.writeValueAsString(payload);
             
-            // Usando o novo canal de inicialização
             rabbitTemplate.convertAndSend(
                 RabbitMQConfig.INIT_EXCHANGE, 
                 RabbitMQConfig.INIT_ROUTING_KEY, 
@@ -75,10 +73,10 @@ public class DroneService {
         
         db.save(drones);
         
-        // --- 1. PUBLICAÇÃO INTERNA (ATUALIZA O FRONTEND IMEDIATAMENTE) ---
+        // PUBLICAÇÃO INTERNA (ATUALIZA O FRONTEND IMEDIATAMENTE)
         eventPublisher.publish("DRONE_CREATED", drone); 
         
-        // --- 2. PUBLICAÇÃO EXTERNA (INICIA A THREAD NO SIMULADOR) ---
+        // PUBLICAÇÃO EXTERNA (INICIA A THREAD NO SIMULADOR)
         publishDroneEvent("DRONE_CREATED", drone); 
 
         return drone;
@@ -95,16 +93,16 @@ public class DroneService {
         Drone drone = getById(id);
         if (drone == null) return false;
 
-        // 1. Remove da lista em memória
+        // Remove da lista em memória
         drones.removeIf(d -> d.getId().equals(id));
         
-        // 2. Salva a lista atualizada de drones
+        // Salva a lista atualizada de drones
         db.save(drones);
         
-        // 3. --- Arquiva a telemetria antiga ---
-        db.archiveTelemetry(id); //
+        //  Arquiva a telemetria antiga
+        db.archiveTelemetry(id);
 
-        // 4. Notifica o sistema
+        // Notifica o sistema
         eventPublisher.publish("DRONE_DELETED", drone); 
         publishDroneEvent("DRONE_DELETED", drone);
 

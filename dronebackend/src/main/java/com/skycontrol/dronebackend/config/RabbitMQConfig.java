@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {   
 
-    //-----------------------
-    // 1) TELEMETRIA
-    //-----------------------
+    // TELEMETRIA
     public static final String TELEMETRY_EXCHANGE = "telemetry.exchange";
     public static final String TELEMETRY_QUEUE = "telemetry.queue";
     public static final String TELEMETRY_ROUTING_KEY = "drone.*.telemetry";
@@ -33,9 +31,8 @@ public class RabbitMQConfig {
     }
 
 
-    //-----------------------
-    // 2) ALERTAS
-    //-----------------------
+
+    // ALERTAS
     public static final String ALERT_EXCHANGE = "alert.exchange";
     public static final String ALERT_QUEUE = "alert.queue";
     public static final String ALERT_ROUTING_KEY = "drone.*.alert";
@@ -59,9 +56,8 @@ public class RabbitMQConfig {
     }
 
 
-    //-----------------------
-    // 3) COMANDOS DO FRONT → DRONE
-    //-----------------------
+
+    // COMANDOS DO FRONT → DRONE
     public static final String COMMAND_EXCHANGE = "command.exchange";
     public static final String COMMAND_QUEUE = "command.queue";
     public static final String COMMAND_ROUTING_KEY = "drone.*.command";
@@ -85,9 +81,7 @@ public class RabbitMQConfig {
     }
 
 
-    //-----------------------
-    // 4) EVENTOS DE SISTEMA (opcional)
-    //-----------------------
+    // EVENTOS DE SISTEMA
     public static final String EVENT_EXCHANGE = "event.exchange";
     public static final String EVENT_QUEUE = "event.queue";
     public static final String EVENT_ROUTING_KEY = "drone.*.event";
@@ -110,9 +104,7 @@ public class RabbitMQConfig {
                 .with(EVENT_ROUTING_KEY);
     }
 
-    //-----------------------
-    // 5) INICIALIZAÇÃO DO SIMULADOR (Backend -> Simulador)
-    //-----------------------
+    // INICIALIZAÇÃO DO SIMULADOR (Backend -> Simulador)
     public static final String INIT_EXCHANGE = "simulator.init.exchange";
     public static final String INIT_QUEUE = "simulator.init.queue";
     public static final String INIT_ROUTING_KEY = "drone.init";

@@ -33,7 +33,7 @@ public class JsonDatabaseService {
         return Paths.get(DATA_DIRECTORY, fileName).toString();
     }
 
-    // --- DRONES ---
+    // DRONES 
     public synchronized List<Drone> load() {
         try {
             File file = new File(getFilePath(DRONES_FILE));
@@ -52,7 +52,7 @@ public class JsonDatabaseService {
         }
     }
 
-    // --- ALERTAS ---
+    // ALERTAS
     public synchronized void saveAlert(Alert alert) {
         List<Alert> alerts = loadAlerts();
         alerts.add(alert);
@@ -68,7 +68,7 @@ public class JsonDatabaseService {
         System.out.println("[JsonDatabaseService] Arquivo de alertas zerado.");
     }
 
-    // --- TELEMETRIA ---
+    // TELEMETRIA 
     public synchronized List<DroneTelemetry> loadTelemetry() {
         return loadListFromFile(getFilePath(TELEMETRY_FILE), new TypeReference<List<DroneTelemetry>>() {});
     }
@@ -91,26 +91,20 @@ public class JsonDatabaseService {
         writeFile(getFilePath(TELEMETRY_FILE), list);
     }
 
-    // --- NOVO: ARQUIVAR TELEMETRIA ---
+    // ARQUIVAR TELEMETRIA
     public synchronized void archiveTelemetry(Long droneId) {
-        // 1. Carrega a telemetria ativa
         List<DroneTelemetry> activeList = loadTelemetry();
-        
-        // 2. Encontra o drone que está sendo deletado
         DroneTelemetry toArchive = activeList.stream()
                 .filter(t -> t.getDroneId() == droneId.intValue())
                 .findFirst()
                 .orElse(null);
 
         if (toArchive != null) {
-            // 3. Remove da lista ativa e salva
             activeList.remove(toArchive);
             writeFile(getFilePath(TELEMETRY_FILE), activeList);
 
-            // 4. Carrega a lista de arquivados
             List<DroneTelemetry> archivedList = loadListFromFile(getFilePath(ARCHIVED_FILE), new TypeReference<List<DroneTelemetry>>() {});
             
-            // 5. Adiciona e salva no arquivo de arquivo
             archivedList.add(toArchive);
             writeFile(getFilePath(ARCHIVED_FILE), archivedList);
             
@@ -118,7 +112,7 @@ public class JsonDatabaseService {
         }
     }
 
-    // --- Helpers Genéricos ---
+    // Helpers
     private synchronized <T> void writeFile(String filePath, List<T> data) {
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), data);

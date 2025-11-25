@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkyControl - Painel Tático</title>
     <style>
-        /* --- ESTILOS GERAIS --- */
+        
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; }
         .container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; max-width: 1600px; margin: 0 auto; height: 90vh; }
         
@@ -44,7 +44,6 @@
         .tel-card { background: #1f2937; color: #e5e7eb; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; }
         .tel-card h4 { color: #10b981; margin: 0 0 5px 0; border-bottom: 1px solid #374151; }
         
-        /* Indicador de Líder no Painel */
         .leader-badge { background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 5px; }
     </style>
 </head>
@@ -110,12 +109,11 @@
 </div>
 
 <script>
-    // === CONFIGURAÇÃO ===
+
     const API_BASE = "http://localhost:8080/api";
     const EVENTS_URL = "http://localhost:8080/events";
     const BASE = { lat: -22.9000, lng: -43.2000 };
 
-    // === ESTADO TÁTICO ===
     const state = {
         drones: new Map(),
         telemetry: new Map(),
@@ -123,9 +121,7 @@
         map: { 
             scale: 30000, offsetX: 0, offsetY: 0, 
             dragging: false, startX: 0, startY: 0, 
-            // MULTISSELEÇÃO (Set)
             selectedIds: new Set(), 
-            // LÍDER (Único)
             leaderId: null 
         }
     };
@@ -140,33 +136,27 @@
     };
     const ctx = els.canvas.getContext('2d');
 
-    // === DESENHO DO DRONE ===
     function drawDroneIcon(ctx, x, y, color, isSelected, isLeader) {
         const size = 14;
         ctx.save();
         ctx.translate(x, y);
         
-        // LÍDER: Círculo Vermelho Externo
         if (isLeader) {
             ctx.beginPath();
             ctx.arc(0, 0, size + 8, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#ef4444'; // Vermelho
+            ctx.strokeStyle = '#ef4444';
             ctx.lineWidth = 3;
             ctx.stroke();
-            // Label Líder
             ctx.fillStyle = '#ef4444';
             ctx.font = 'bold 10px sans-serif';
             ctx.fillText("LÍDER", -15, -size - 10);
         }
-
-        // SELECIONADO: Quadrado Preto (estilo RTS)
         if (isSelected) {
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 2;
             ctx.strokeRect(-size - 4, -size - 4, (size * 2) + 8, (size * 2) + 8);
         }
 
-        // Corpo do Drone (X)
         ctx.beginPath();
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
@@ -174,7 +164,6 @@
         ctx.moveTo(size/2, -size/2); ctx.lineTo(-size/2, size/2);
         ctx.stroke();
 
-        // Hélices
         ctx.fillStyle = color;
         const propSize = 4;
         const offset = size/2;
@@ -183,14 +172,12 @@
             ctx.fill(); ctx.stroke();
         });
 
-        // Centro
         ctx.beginPath(); ctx.arc(0, 0, 3, 0, 2 * Math.PI);
         ctx.fillStyle = color; ctx.fill();
 
         ctx.restore();
     }
 
-    // === MAPA ===
     function resizeMap() { els.canvas.width = els.canvas.parentElement.offsetWidth; els.canvas.height = els.canvas.parentElement.offsetHeight; drawMap(); }
     window.addEventListener('resize', resizeMap);
 
@@ -199,12 +186,10 @@
         const cx = w / 2; const cy = h / 2;
         ctx.clearRect(0, 0, w, h);
 
-        // Grid
         ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-        
-        // Atualiza Label de Status
+
         if (state.map.leaderId) {
             els.leaderStatus.textContent = `Líder Definido: Drone ${state.map.leaderId}`;
             els.leaderStatus.style.color = "#ef4444";
@@ -225,19 +210,17 @@
             const x = (lng - BASE.lng) * state.map.scale + cx + state.map.offsetX;
             const y = (BASE.lat - lat) * state.map.scale + cy + state.map.offsetY;
 
-            // Skip fora da tela
             if (x < -50 || x > w + 50 || y < -50 || y > h + 50) return;
 
-            // Status
             const hasEmergency = state.alerts.some(a => a.droneId == id && a.type === 'EMERGENCY_SIGNAL');
             const isLowBat = tel && tel.battery < 20;
-            const isSelected = state.map.selectedIds.has(id); // Verifica no Set
+            const isSelected = state.map.selectedIds.has(id); 
             const isLeader = state.map.leaderId == id;
             
-            let color = '#3b82f6'; // Azul
-            if (!tel) color = '#9ca3af'; // Cinza
-            else if (hasEmergency) color = '#ef4444'; // Vermelho
-            else if (isLowBat) color = '#f59e0b'; // Amarelo
+            let color = '#3b82f6';
+            if (!tel) color = '#9ca3af'; 
+            else if (hasEmergency) color = '#ef4444'; 
+            else if (isLowBat) color = '#f59e0b'; 
 
             drawDroneIcon(ctx, x, y, color, isSelected, isLeader);
 
@@ -256,7 +239,6 @@
 
     // --- CONTROLES DO MOUSE ---
     
-    // Pan/Zoom (Mantidos iguais)
     els.canvas.addEventListener('mousedown', e => { state.map.dragging = true; state.map.startX = e.clientX; state.map.startY = e.clientY; });
     els.canvas.addEventListener('mousemove', e => { if (!state.map.dragging) return; state.map.offsetX += e.clientX - state.map.startX; state.map.offsetY += e.clientY - state.map.startY; state.map.startX = e.clientX; state.map.startY = e.clientY; drawMap(); });
     els.canvas.addEventListener('mouseup', () => state.map.dragging = false);
@@ -264,24 +246,20 @@
 
     // --- LÓGICA DE SELEÇÃO E LÍDER ---
 
-    // 1. Duplo Clique: Define Líder
     els.canvas.addEventListener('dblclick', e => {
         const clickedId = getClickedDroneId(e);
         if (clickedId) {
-            // Se clicar no líder atual, desmarca
             state.map.leaderId = (state.map.leaderId == clickedId) ? null : clickedId;
             drawMap();
         }
     });
 
-    // 2. Clique Simples: Seleção ou Movimento
     els.canvas.addEventListener('click', e => {
         if (state.map.dragging) return;
 
         const clickedId = getClickedDroneId(e);
 
         if (clickedId) {
-            // Lógica de Seleção (Toggle)
             if (state.map.selectedIds.has(clickedId)) {
                 state.map.selectedIds.delete(clickedId);
             } else {
@@ -289,12 +267,10 @@
             }
             drawMap();
         } else {
-            // Clicou no vazio -> Lógica de Movimento
             handleMapMoveClick(e);
         }
     });
 
-    // Helper: Identifica drone clicado
     function getClickedDroneId(e) {
         const rect = els.canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
@@ -303,7 +279,7 @@
 
         state.drones.forEach((drone, id) => {
             const tel = state.telemetry.get(id);
-            if (!tel) return; // Ignora inativos para clique
+            if (!tel) return; 
             const x = (tel.lng - BASE.lng) * state.map.scale + cx + state.map.offsetX;
             const y = (BASE.lat - tel.lat) * state.map.scale + cy + state.map.offsetY;
             if (Math.sqrt((mx - x)**2 + (my - y)**2) < 20) foundId = id;
@@ -311,7 +287,6 @@
         return foundId;
     }
 
-    // Helper: Lógica de Mover Grupo
     function handleMapMoveClick(e) {
         if (state.map.selectedIds.size === 0) return;
 
@@ -324,22 +299,18 @@
             const rect = els.canvas.getBoundingClientRect();
             const cx = els.canvas.width / 2; const cy = els.canvas.height / 2;
             
-            // Ponto central clicado (Lat/Lng)
             const clickLng = ((e.clientX - rect.left - cx - state.map.offsetX) / state.map.scale) + BASE.lng;
             const clickLat = BASE.lat - ((e.clientY - rect.top - cy - state.map.offsetY) / state.map.scale);
 
-            // Converte Set para Array e Ordena (para manter coerência na formação)
             const sortedIds = Array.from(state.map.selectedIds).sort((a, b) => a - b);
             
-            // Configuração da Linha Ad-Hoc
             const SPACING = 0.0020;
-            // O drone do meio (índice) fica no ponto clicado
             const centerIndex = (count - 1) / 2; 
 
             sortedIds.forEach((id, index) => {
                 const offset = (index - centerIndex) * SPACING;
                 const targetLng = clickLng + offset;
-                const targetLat = clickLat; // Mesma latitude (Linha horizontal)
+                const targetLat = clickLat; 
 
                 sendMoveCommand(id, targetLat, targetLng);
             });
@@ -349,7 +320,6 @@
     // === COMANDOS DE FORMAÇÃO (PRE-SET) ===
     window.sendFormation = async (type) => {
         try {
-            // Envia o leaderId se estiver definido
             const payload = { type: type };
             if (state.map.leaderId) {
                 payload.leaderId = state.map.leaderId;
@@ -358,9 +328,6 @@
             await fetch(`${API_BASE}/formations`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
         } catch(e) { console.error(e); }
     };
-
-    // ... (Resto das funções: renderUI, sendMoveCommand, deleteDrone, resumeDrone, API calls... IGUAIS AO ANTERIOR) ...
-    // Vou resumir as funções repetitivas para caber aqui, mas elas são idênticas ao script anterior.
     
     async function sendMoveCommand(id, lat, lng) { await fetch(`${API_BASE}/drones/${id}/command`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ command: "GO_TO_POSITION", lat, lng }) }); }
     window.deleteDrone = async (id) => { if(confirm('Deletar?')) { state.map.selectedIds.delete(id); if(state.map.leaderId == id) state.map.leaderId = null; await fetch(`${API_BASE}/drones/${id}`, { method: 'DELETE' }); }};
@@ -387,10 +354,8 @@
             const li = document.createElement('li'); 
             li.className = 'drone-item';
             
-            // --- MUDANÇA 1: Cursor pointer para indicar clique ---
             li.style.cursor = 'pointer';
             
-            // --- MUDANÇA 2: Evento de clique no item inteiro ---
             li.onclick = () => focusOnDrone(d.id);
 
             li.innerHTML = `
@@ -419,7 +384,6 @@
         drawMap();
     }
 
-    // === NOVA FUNÇÃO: FOCAR NO DRONE ===
     window.focusOnDrone = (id) => {
         const tel = state.telemetry.get(id);
         
@@ -428,19 +392,10 @@
             return;
         }
 
-        // 1. Define o drone como selecionado (para ficar com borda preta/vermelha)
         state.map.selectedId = id;
-
-        // 2. Matemática de Centralização
-        // Queremos que a posição do drone seja (0,0) relativo ao centro
-        // A fórmula de desenho é: x = (lng - BASE) * scale + center + offset
-        // Para x ser o centro, offset deve anular a diferença geográfica:
-        // offset = -((lng - BASE) * scale)
-        
         state.map.offsetX = -((tel.lng - BASE.lng) * state.map.scale);
         state.map.offsetY = -((BASE.lat - tel.lat) * state.map.scale);
 
-        // 3. Redesenha o mapa com o novo foco
         drawMap();
     };
 

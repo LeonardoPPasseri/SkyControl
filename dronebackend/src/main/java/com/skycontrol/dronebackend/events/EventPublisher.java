@@ -1,7 +1,6 @@
 package com.skycontrol.dronebackend.events;
 
 public interface EventPublisher { 
-    // método genérico para publicar eventos
     void publish(String eventType, Object data);
 }
 

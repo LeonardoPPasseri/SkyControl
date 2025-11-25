@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RabbitMQProducer {
-    // Serviço responsável por enviar mensagens para o RabbitMQ
 
+    // Serviço responsável por enviar mensagens para o RabbitMQ
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
@@ -25,7 +25,7 @@ public class RabbitMQProducer {
         this.objectMapper = new ObjectMapper();
     }
 
-    // 1) Envio genérico de eventos
+    // Envio genérico de eventos
     public void sendEvent(Object payload, String eventType) {
         try {
             EventWrapper wrapper = new EventWrapper(eventType, payload);
@@ -40,13 +40,13 @@ public class RabbitMQProducer {
     }
 
 
-    // 2) Método legado (continua funcionando)
+    // Envio específico para eventos de drone
     public void sendDroneEvent(Drone drone, String eventType) {
-        sendEvent(drone, eventType); // usa o novo padronizado
+        sendEvent(drone, eventType);
     }
 
     
-    // Envio simples (string) 
+    // Envio simples
     public void sendMessage(String message) {
         rabbitTemplate.convertAndSend(exchange, routingKey, message);
         System.out.println("[RabbitMQProducer] mensagem enviada: " + message);

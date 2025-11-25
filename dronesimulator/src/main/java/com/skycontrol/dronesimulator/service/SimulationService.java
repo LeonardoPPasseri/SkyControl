@@ -13,30 +13,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Gerencia o ciclo de vida das simulações de drones neste Microsserviço Simulação.
- * É controlado APENAS por eventos RabbitMQ (via InitListener e CommandListener).
- */
+
+// Gerencia o ciclo de vida das simulações de drones neste Microsserviço Simulação.
+// É controlado APENAS por eventos RabbitMQ (via InitListener e CommandListener).
+
 @Service
 public class SimulationService {
 
     @Autowired
-    private RabbitTemplate rabbitTemplate; // Para o SimulatedDrone enviar msgs
+    private RabbitTemplate rabbitTemplate;
 
-    // Mapa para manter referências a todas as threads ativas.
     private final Map<Long, SimulatedDrone> activeSimulations = new ConcurrentHashMap<>();
 
-    // Pool de threads para executar os SimulatedDrones.
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
 
-    /**
-     * Inicia a simulação para um drone (thread).
-     * Chamado pelo InitListener (após receber um evento DRONE_CREATED).
-     */
     public void startSimulation(Drone drone) {
         if (!drone.isActive()) {
-            return; // Não inicia se o drone estiver marcado como inativo
+            return;
         }
 
         if (activeSimulations.containsKey(drone.getId())) {
@@ -46,19 +40,11 @@ public class SimulationService {
 
         System.out.println("[SimulationService] Iniciando simulação para Drone ID: " + drone.getId());
 
-        // Cria a instância do SimulatedDrone, passando o RabbitTemplate
-        // O SimulatedDrone precisa do RabbitTemplate para publicar Telemetria e Alertas
         SimulatedDrone simulatedDrone = new SimulatedDrone(drone, rabbitTemplate);
 
-        // Armazena e submete ao Executor
         activeSimulations.put(drone.getId(), simulatedDrone);
         executor.submit(simulatedDrone);
     }
-
-    /**
-     * Para a simulação de um drone.
-     * Chamado pelo InitListener (após receber um evento DRONE_DELETED ou DRONE_UPDATED).
-     */
     public void stopSimulation(Drone drone) {
         SimulatedDrone simulation = activeSimulations.get(drone.getId());
 
@@ -70,11 +56,6 @@ public class SimulationService {
             System.out.println("[SimulationService] Simulação para Drone " + drone.getId() + " não encontrada para parar. Ignorando.");
         }
     }
-
-    /**
-     * Define uma nova posição alvo para o drone.
-     * Chamado pelo CommandListener.
-     */
     public void setDroneTarget(Long droneId, double lat, double lng) {
         SimulatedDrone simulation = activeSimulations.get(droneId);
 
@@ -86,10 +67,6 @@ public class SimulationService {
         }
     }
 
-    /**
-     * Retoma a simulação (depois de um comando PAUSE/EMERGENCY).
-     * Chamado pelo CommandListener.
-     */
     public void resumeSimulation(Long droneId) {
         SimulatedDrone simulation = activeSimulations.get(droneId);
 
@@ -103,21 +80,17 @@ public class SimulationService {
 
     @PreDestroy
     public void cleanup() {
-        System.out.println("[SimulationService] Desligando o Simulador... Parando todas as simulações ativas.");
 
-        // Avisa a todos os drones para pararem
         activeSimulations.values().forEach(SimulatedDrone::stop);
 
-        // Desliga o ExecutorService e espera as threads terminarem
         executor.shutdown();
         try {
             if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                executor.shutdownNow(); // Força o desligamento se não terminar em 5s
+                executor.shutdownNow();
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        System.out.println("[SimulationService] Desligamento concluído.");
     }
 }

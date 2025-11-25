@@ -10,10 +10,8 @@ public class Alert {
     private double lng;
 
    
-    //Construtor padrão (vazio) exigido pelo Jackson e RabbitMQ.
     public Alert() {}
 
-    //Construtor completo para o novo formato com lat/lng
     public Alert(Long droneId, String type, String message, long timestamp, double lat, double lng) {
         this.droneId = droneId;
         this.type = type;
@@ -23,14 +21,10 @@ public class Alert {
         this.lng = lng;
     }
     
-     //Construtor legado (para o LOW_BATTERY)
     public Alert(Long droneId, String type, String message, long timestamp) {
-        // Chama o construtor completo com lat/lng zerados
         this(droneId, type, message, timestamp, 0.0, 0.0); 
     }
 
-
-    // --- Getters e Setters para TODOS os campos ---
     
     public Long getDroneId() { return droneId; }
     public void setDroneId(Long droneId) { this.droneId = droneId; }

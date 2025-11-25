@@ -37,17 +37,12 @@ public class TelemetryListener {
     @RabbitListener(queues = RabbitMQConfig.TELEMETRY_QUEUE)
     public void handleTelemetryMessage(String telemetryJson) {
         try {
-            // 1. Desserializar
             DroneTelemetry telemetry = objectMapper.readValue(telemetryJson, DroneTelemetry.class);
-
-            // 2. Salvar o estado mais recente no JSON
+     
             dbService.saveTelemetry(telemetry); //
 
-            // 3. Publicar no barramento interno (para o frontend)
             var event = new InternalEventPublisher.Event("TELEMETRY_UPDATED", telemetry);
             eventBus.publish(event); //
-
-            // 4. --- LÓGICA DE ALERTA ---
             checkBatteryAlert(telemetry);
 
         } catch (Exception e) {
@@ -59,7 +54,6 @@ public class TelemetryListener {
      * Verifica a telemetria e dispara um alerta de bateria baixa se necessário.
      * Evita spam de alertas verificando o último estado conhecido.
      */
-    // Dentro de TelemetryListener.java
     private void checkBatteryAlert(DroneTelemetry telemetry) {
         final int LOW_BATTERY_THRESHOLD = 20; 
         int currentBattery = telemetry.getBattery();
@@ -69,15 +63,11 @@ public class TelemetryListener {
 
         if (currentBattery <= LOW_BATTERY_THRESHOLD && lastNotifiedBattery > LOW_BATTERY_THRESHOLD) {
             
-            // --- MUDANÇA AQUI ---
-            // Deve chamar o método para alertas INTERNOS
             alertService.createInternalAlert( 
                 (long) droneId, 
                 "LOW_BATTERY", 
                 "Bateria do Drone " + droneId + " está em " + currentBattery + "%!"
             );
-            // --- FIM DA MUDANÇA ---
-            
             lastBatteryState.put(droneId, currentBattery);
         
         } else if (currentBattery > LOW_BATTERY_THRESHOLD) {

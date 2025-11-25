@@ -5,11 +5,7 @@ import com.skycontrol.dronebackend.service.DroneService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-//Não usamos o ResponseEntity aqui para simplificar o código (Aprendizado inicial)
-//O ResponseEntity é usado para Retornar códigos HTTP específicos
-//Como não vamos usa-lo, a resposta sempre será 200 OK para sucesso e 500 Internal Server Error para falhas
-
-@CrossOrigin(origins = "*") //Permitir requisições de qualquer origem (frontend)
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/drones")
 public class DroneController {

@@ -22,16 +22,13 @@ public class InitListener {
     @RabbitListener(queues = RabbitMQConfig.INIT_QUEUE)
     public void handleInitMessage(String initJson) {
         try {
-            // Desserializa o payload que tem eventType e data (Drone)
             Map<String, Object> wrapper = objectMapper.readValue(initJson, new TypeReference<Map<String, Object>>() {});
             String eventType = (String) wrapper.get("eventType");
             
-            // Desserializa o objeto Drone aninhado
             Drone drone = objectMapper.convertValue(wrapper.get("data"), Drone.class);
 
             if (drone == null) return;
 
-            // Roteia o comando para o SimulationService
             switch (eventType) {
                 case "DRONE_CREATED":
                     simulationService.startSimulation(drone);
@@ -39,7 +36,6 @@ public class InitListener {
                 case "DRONE_DELETED":
                     simulationService.stopSimulation(drone);
                     break;
-                // DRONE_UPDATED também pode ser adicionado aqui para parar/iniciar simulação
             }
 
         } catch (Exception e) {

@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/alerts")
-@CrossOrigin(origins = "*") // Permite acesso do frontend
+@CrossOrigin(origins = "*")
 public class AlertController {
 
     private final JsonDatabaseService dbService;
@@ -20,12 +20,11 @@ public class AlertController {
         this.dbService = dbService;
     }
 
-    /**
-     * Endpoint para buscar TODOS os alertas salvos no alerts.json
-     */
+    
+    // Endpoint para buscar TODOS os alertas salvos no alerts.json
+    
     @GetMapping
     public List<Alert> getAllAlerts() {
-        // Usa o método que já existe no JsonDatabaseService
         return dbService.loadAlerts(); 
     }
 }
