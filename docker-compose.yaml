@@ -1,0 +1,47 @@
+services:
+  # 1. Serviço de Mensageria (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine # Versão com interface visual
+    container_name: skycontrol-rabbitmq
+    ports:
+      - "5672:5672" # Porta de comunicação (AMQP)
+      - "15672:15672" # Porta do painel de administração (http://localhost:15672)
+    networks:
+      - skycontrol-network
+
+  # 2. Serviço Backend
+  backend:
+    build: ./dronebackend # Caminho onde está o Dockerfile do backend
+    container_name: skycontrol-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # AQUI ESTÁ A MÁGICA: Sobrescrevemos o application.properties
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    volumes:
+      # Persistência: Mapeia a pasta ./data do seu PC para /app/data no container
+      - ./data:/app/data
+    depends_on:
+      - rabbitmq # Só inicia depois que o RabbitMQ subir
+    networks:
+      - skycontrol-network
+
+  # 3. Serviço Simulador
+  simulator:
+    build: ./dronesimulator
+    container_name: skycontrol-simulator
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    depends_on:
+      - backend # Espera o backend estar pronto
+    networks:
+      - skycontrol-network
+
+# Criação da rede virtual para eles conversarem
+networks:
+  skycontrol-network:
+    driver: bridge
