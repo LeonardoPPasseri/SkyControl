@@ -32,7 +32,6 @@ public class RabbitMQProducer {
             String json = objectMapper.writeValueAsString(wrapper);
 
             rabbitTemplate.convertAndSend(exchange, routingKey, json);
-            System.out.println("[RabbitMQProducer] evento enviado: " + json);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();

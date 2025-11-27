@@ -25,7 +25,7 @@ public class JsonDatabaseService {
     private static final String DRONES_FILE = "drones.json";
     private static final String ALERTS_FILE = "alerts.json";
     private static final String TELEMETRY_FILE = "telemetry.json";
-    private static final String ARCHIVED_FILE = "archived_telemetry.json"; // <-- NOVO ARQUIVO
+    private static final String ARCHIVED_FILE = "archived_telemetry.json";
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -65,7 +65,6 @@ public class JsonDatabaseService {
 
     public synchronized void clearAlerts() {
         writeFile(getFilePath(ALERTS_FILE), new ArrayList<Alert>());
-        System.out.println("[JsonDatabaseService] Arquivo de alertas zerado.");
     }
 
     // TELEMETRIA 
@@ -107,8 +106,6 @@ public class JsonDatabaseService {
             
             archivedList.add(toArchive);
             writeFile(getFilePath(ARCHIVED_FILE), archivedList);
-            
-            System.out.println("[JsonDatabaseService] Telemetria do Drone " + droneId + " movida para arquivo.");
         }
     }
 

@@ -62,8 +62,6 @@ public class FormationService {
             centerLng = leaderTel.getLng();
         }
 
-        System.out.println("[FormationService] Formação " + formationType + " centrada no Drone " + leader.getId());
-
         // Posiciona o Líder no Centro
         if ("BASE".equals(formationType)) {
             centerLat = -22.9000;

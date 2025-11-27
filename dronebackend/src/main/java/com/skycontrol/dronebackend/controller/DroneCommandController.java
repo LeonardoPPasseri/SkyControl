@@ -21,10 +21,8 @@ public class DroneCommandController {
     @Autowired
     private DroneCommandService commandService;
 
-    /**
-     * Endpoint para enviar comandos para um drone específico.
-     * Ex: /api/drones/5/command
-     */
+    // Endpoint para enviar comandos para um drone específico.
+    // Ex: /api/drones/5/command
     @PostMapping("/{id}/command")
     public ResponseEntity<Void> receiveCommand(
             @PathVariable Long id, 
@@ -35,7 +33,6 @@ public class DroneCommandController {
             return ResponseEntity.badRequest().build();
         }
 
-        // DELEGAR PARA O SERVIÇO 
         commandService.processCommand(id, payload);
         
         System.out.println("[CommandController] Comando recebido para Drone ID: " + id + " | Payload: " + payload);

@@ -50,10 +50,8 @@ public class TelemetryListener {
         }
     }
 
-    /**
-     * Verifica a telemetria e dispara um alerta de bateria baixa se necessário.
-     * Evita spam de alertas verificando o último estado conhecido.
-     */
+    // Verifica a telemetria e dispara um alerta de bateria baixa se necessário.
+     
     private void checkBatteryAlert(DroneTelemetry telemetry) {
         final int LOW_BATTERY_THRESHOLD = 20; 
         int currentBattery = telemetry.getBattery();

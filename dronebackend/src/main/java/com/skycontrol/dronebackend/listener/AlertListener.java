@@ -17,11 +17,11 @@ public class AlertListener {
     @Autowired
     private AlertService alertService;
 
-    /**
-     * Ouve a fila de Alertas (definida em RabbitMQConfig).
-     * Esta fila recebe alertas de emergência dos drones.
-     */
-    @RabbitListener(queues = RabbitMQConfig.ALERT_QUEUE) //
+    
+     //Ouve a fila de Alertas (definida em RabbitMQConfig).
+     // Esta fila recebe alertas de emergência dos drones.
+     
+    @RabbitListener(queues = RabbitMQConfig.ALERT_QUEUE)
     public void handleAlertMessage(String alertJson) {
         try {
             Alert alert = objectMapper.readValue(alertJson, Alert.class); 

@@ -1,7 +1,24 @@
 version: "3.8"
 
 services:
-  # 1. Serviço Simulador
+  # 1. RABBITMQ
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: skycontrol-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - skycontrol-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. SIMULADOR
   simulator:
     build: ./dronesimulator
     container_name: skycontrol-simulator
@@ -11,25 +28,14 @@ services:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
     depends_on:
-      - backend # Espera o backend estar pronto
+      rabbitmq:
+        condition: service_healthy 
     networks:
       - skycontrol-network
 
-  # 2. Serviço de Mensageria (RabbitMQ)
-  rabbitmq:
-    image: rabbitmq:3.12-management-alpine # Versão com interface visual
-    container_name: skycontrol-rabbitmq
-    ports:
-      - "5672:5672" # Porta de comunicação (AMQP)
-      - "15672:15672" # Porta do painel de administração (http://localhost:15672)
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq # Persistência de dados do RabbitMQ
-    networks:
-      - skycontrol-network
-
-  # 3. Serviço Backend
+  # 3. BACKEND
   backend:
-    build: ./dronebackend # Caminho onde está o Dockerfile do backend
+    build: ./dronebackend
     container_name: skycontrol-backend
     ports:
       - "8080:8080"
@@ -37,17 +43,18 @@ services:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
     volumes:
-      - ./data:/app/data # Persistência de dados do backend
+      - ./data:/app/data 
     depends_on:
-      - rabbitmq # Só inicia depois que o RabbitMQ subir
+      rabbitmq:
+        condition: service_healthy
+      simulator:
+        condition: service_started 
     networks:
       - skycontrol-network
 
-# Criação da rede virtual para eles conversarem
 networks:
   skycontrol-network:
     driver: bridge
 
-# Volumes para persistência de dados
 volumes:
   rabbitmq_data:

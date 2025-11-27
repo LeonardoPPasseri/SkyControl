@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+
 @Primary
 @Component
 public class InternalEventPublisher implements EventPublisher {
@@ -17,7 +18,6 @@ public class InternalEventPublisher implements EventPublisher {
         var event = new Event(eventType, data);
         internalEventBus.publish(event);
     }
-
     public static class Event {
         public String type;
         public Object data;

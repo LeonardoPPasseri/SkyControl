@@ -17,7 +17,7 @@ public class InitListener {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private SimulationService simulationService; // O serviço que gerencia as threads
+    private SimulationService simulationService;
 
     @RabbitListener(queues = RabbitMQConfig.INIT_QUEUE)
     public void handleInitMessage(String initJson) {
