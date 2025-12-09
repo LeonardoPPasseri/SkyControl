@@ -50,8 +50,8 @@ public class SimulationService {
 
         if (simulation != null) {
             System.out.println("[SimulationService] Parando simulação para Drone ID: " + drone.getId());
-            simulation.stop(); // Sinaliza para a thread parar
-            activeSimulations.remove(drone.getId()); // Remove do mapa
+            simulation.stop();
+            activeSimulations.remove(drone.getId());
         } else {
             System.out.println("[SimulationService] Simulação para Drone " + drone.getId() + " não encontrada para parar. Ignorando.");
         }

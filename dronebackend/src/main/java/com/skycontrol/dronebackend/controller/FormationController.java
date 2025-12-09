@@ -17,8 +17,6 @@ public class FormationController {
 
     
     // Endpoint para definir a formação.
-    // Recebe: { "type": "LINE", "leaderId": 5 }
-     
     @PostMapping
     public ResponseEntity<Void> setFormation(@RequestBody Map<String, Object> payload) {
         String type = (String) payload.get("type");

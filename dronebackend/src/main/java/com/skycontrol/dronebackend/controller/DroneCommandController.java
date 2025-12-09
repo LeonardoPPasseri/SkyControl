@@ -22,7 +22,6 @@ public class DroneCommandController {
     private DroneCommandService commandService;
 
     // Endpoint para enviar comandos para um drone específico.
-    // Ex: /api/drones/5/command
     @PostMapping("/{id}/command")
     public ResponseEntity<Void> receiveCommand(
             @PathVariable Long id, 
