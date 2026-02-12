@@ -25,7 +25,7 @@ O sistema é composto por três serviços principais que comunicam entre si:
 
 
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 * **Linguagem:** Java
 * **Framework:** Spring Boot 3.5.7
@@ -38,9 +38,9 @@ O sistema é composto por três serviços principais que comunicam entre si:
 * **Containerização:** Docker & Docker Compose
 * **Build Tool:** Maven
 
-## 📂 Estrutura de Filas (RabbitMQ)
+## Estrutura de Filas (RabbitMQ)
 
-Conforme configurado no `application.properties`, o sistema utiliza as seguintes filas e *routing keys*:
+O sistema utiliza as seguintes filas e *routing keys*:
 
 | Tipo | Fila (Queue) | Routing Key | Descrição |
 | --- | --- | --- | --- |
@@ -48,9 +48,9 @@ Conforme configurado no `application.properties`, o sistema utiliza as seguintes
 | **Alertas** | `alert.queue` | `drone.alert.*` | Alertas gerados pelo sistema (ex: bateria fraca). |
 | **Comandos** | `drone.command.queue` | `drone.command.*` | Comandos enviados do backend para os drones. |
 
-## 🛠️ Como Executar
+## Como Executar
 
-A forma mais fácil de correr o projeto é utilizando o **Docker Compose**, que orquestra todos os serviços automaticamente.
+A forma mais fácil de iniciar o projeto é utilizando o **Docker Compose**, que orquestra todos os serviços automaticamente.
 
 ### Pré-requisitos
 
@@ -76,11 +76,11 @@ docker-compose up --build
 
 *Este comando irá construir as imagens do backend e do simulador e iniciar o RabbitMQ.*
 3. **Verificar o estado dos serviços:**
-O sistema estará pronto quando vires logs a indicar que as aplicações Spring Boot iniciaram com sucesso.
+O sistema estará pronto quando o terminal indicar que as aplicações Spring Boot iniciaram com sucesso.
 
-### 🔌 Aceder aos Serviços
+### Serviços
 
-Uma vez que o sistema esteja a correr, podes aceder através das seguintes portas:
+Uma vez que o sistema esteja funcionando, ele pode ser iniciado através das seguintes portas:
 
 * **Backend API:** `http://localhost:8080`
 * **Simulador API:** `http://localhost:8081`
@@ -93,6 +93,6 @@ Uma vez que o sistema esteja a correr, podes aceder através das seguintes porta
 ## 📝 Notas Adicionais
 
 * **Persistência:** O backend está configurado para montar um volume em `./data` (`./data:/app/data`), garantindo que dados gerados (logs ou ficheiros JSON) não se perdem ao reiniciar o contentor.
-* **Dependências:** O serviço `backend` aguarda que o `simulator` inicie, e ambos aguardam que o `rabbitmq` esteja "saudável" (healthcheck) antes de arrancar.
+* **Dependências:** O serviço `backend` aguarda que o `simulator` inicie, e ambos aguardam que o `rabbitmq` esteja "saudável" (healthcheck) antes de iniciar.
 
 ---
